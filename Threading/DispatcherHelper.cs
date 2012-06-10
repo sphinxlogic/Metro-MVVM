@@ -2,6 +2,7 @@
 {
     using System;
     using Windows.UI.Core;
+    using Windows.UI.Xaml;
 
     /// <summary>
     /// Helper class for dispatcher operations on the UI thread.
@@ -13,6 +14,7 @@
         /// <see cref="Initialize" /> method has been called on the UI thread.
         /// </summary>
         public static CoreDispatcher UIDispatcher { get; private set; }
+
         /// <summary>
         /// Executes an action on the UI thread. If this method is called
         /// from the UI thread, the action is executed immendiately. If the
@@ -32,7 +34,7 @@
             }
             else
             {
-                UIDispatcher.InvokeAsync(CoreDispatcherPriority.Normal, (s, e) => action(), UIDispatcher, null);
+                UIDispatcher.RunAsync(CoreDispatcherPriority.Normal, () => action());
             }
         }
 
@@ -49,12 +51,12 @@
             {
                 return;
             }
-            UIDispatcher = CoreWindow.Current.Dispatcher;
+            UIDispatcher = Window.Current.Dispatcher;
         }
 
         public static void InvokeAsync(object sender, Action action)
         {
-            UIDispatcher.InvokeAsync(CoreDispatcherPriority.Normal, (s, e) => action(), sender, null);
+            UIDispatcher.RunAsync(CoreDispatcherPriority.Normal, () => action());
         }
     }
 }

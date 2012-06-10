@@ -1,4 +1,4 @@
-﻿namespace MetroMVVM
+﻿namespace MetroMVVM.Interfaces
 {
     public interface ICloneable<T>
     {

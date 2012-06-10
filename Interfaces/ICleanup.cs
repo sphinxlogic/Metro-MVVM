@@ -1,4 +1,4 @@
-﻿namespace MetroMVVM
+﻿namespace MetroMVVM.Interfaces
 {
     /// <summary>
     /// Defines a common interface for classes that should be cleaned up,

@@ -4,20 +4,26 @@
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Linq.Expressions;
-    using System.Reflection.RuntimeExtensions;
+    using System.Reflection;
     using System.Runtime.CompilerServices;
 
     /// <summary>
     /// A base class for objects of which the properties must be observable.
     /// </summary>
-    public class ObservableObject : INotifyPropertyChanged
+    public class ObservableObject : INotifyPropertyChanged, INotifyPropertyChanging
     {
         /// <summary>
         /// Occurs after a property value changes.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Occurs before a property value changes.
+        /// </summary>
+        public event PropertyChangingEventHandler PropertyChanging;
 
         /// <summary>
         /// Provides access to the PropertyChanged event handler to derived classes.
@@ -30,6 +36,16 @@
             }
         }
         /// <summary>
+        /// Provides access to the PropertyChanging event handler to derived classes.
+        /// </summary>
+        protected PropertyChangingEventHandler PropertyChangingHandler
+        {
+            get
+            {
+                return PropertyChanging;
+            }
+        }
+
         /// Raises the PropertyChanged event if needed.
         /// </summary>
         /// <remarks>If the propertyName parameter does not correspond to an existing
@@ -68,6 +84,39 @@
             }
         }
 
+        protected virtual void RaisePropertyChanging(string propertyName)
+        {
+            if (string.IsNullOrEmpty(propertyName))
+            {
+                throw new NotSupportedException("Raising the PropertyChanging event with an empty string or null is not supported in the Windows 8 Developer Preview");
+            }
+            else
+            {
+                VerifyPropertyName(propertyName);
+
+                var handler = PropertyChanging;
+                if (handler != null)
+                {
+                    handler(this, new PropertyChangingEventArgs(propertyName));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Raises the PropertyChanging event if needed.
+        /// </summary>
+        /// <typeparam name="T">The type of the property that changes.</typeparam>
+        /// <param name="propertyExpression">An expression identifying the property that changes.</param>
+        protected virtual void RaisePropertyChanging<T>(Expression<Func<T>> propertyExpression)
+        {
+            var handler = PropertyChanging;
+            if (handler != null)
+            {
+                var body = propertyExpression.Body as MemberExpression;
+                handler(this, new PropertyChangingEventArgs(body.Member.Name));
+            }
+        }
+
         /// <summary>
         /// Assigns a new value to the property. Then, raises the PropertyChanged event if needed. 
         /// </summary>
@@ -82,6 +131,7 @@
                 return;
             }
 
+            RaisePropertyChanging(propertyExpression);
             field = newValue;
             RaisePropertyChanged(propertyExpression);
         }
@@ -100,6 +150,7 @@
                 return;
             }
 
+            RaisePropertyChanging(propertyName);
             field = newValue;
             RaisePropertyChanged(propertyName);
         }
@@ -117,7 +168,7 @@
         private void VerifyPropertyName(string propertyName)
         {
             var myType = GetType();
-            
+
             if (!string.IsNullOrEmpty(propertyName) && myType.GetRuntimeProperties().Where(p => p.Name == propertyName) == null)
             {
                 throw new ArgumentException("Property not found", propertyName);

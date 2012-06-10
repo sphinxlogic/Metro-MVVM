@@ -5,6 +5,8 @@
     using System.ComponentModel;
     using System.Linq.Expressions;
     using MetroMVVM.Messaging;
+    using MetroMVVM.Interfaces;
+    using Windows.ApplicationModel.Resources;
 
     /// <summary>
     /// A base class for the ViewModel classes in the MVVM pattern.
@@ -14,6 +16,11 @@
         private static bool? m_IsInDesignMode;
         private IMessenger m_MessengerInstance;
         private INavigationService m_NavigationService;
+        private IFlyoutService m_FlyoutService;
+        private IMessageBoxService m_MessageBoxService;
+
+        private static readonly object LockObj = new object();
+        private static ResourceLoader m_ResourceLoader;
 
         /// <summary>
         /// Initializes a new instance of the ViewModelBase class.
@@ -26,7 +33,7 @@
         /// used to navigate between views. If null, this class
         /// will attempt to navigate using the NavigatorService's default
         /// instance.</param>
-        public ViewModelBase(IMessenger messenger = null, INavigationService navigationService = null)
+        public ViewModelBase(IMessenger messenger = null, INavigationService navigationService = null, IFlyoutService flyoutService = null, IMessageBoxService msgBoxService = null)
         {
             if (messenger == null)
             {
@@ -45,7 +52,24 @@
             {
                 m_NavigationService = navigationService;	
             }
-            
+
+            if (flyoutService == null)
+            {
+                m_FlyoutService = FlyoutService.Default;
+            }
+            else
+            {
+                m_FlyoutService = flyoutService;
+            }
+
+            if (msgBoxService == null)
+            {
+                m_MessageBoxService = MessageBoxService.Default;
+            }
+            else
+            {
+                m_MessageBoxService = msgBoxService;
+            }
         }
 
         /// <summary>
@@ -126,7 +150,72 @@
             }
         }
 
+        /// <summary>
+        /// Gets or sets an instance of a <see cref="IFlyoutService" /> used to show Flyouts.
+        /// </summary>
+        protected IFlyoutService FlyoutInstance
+        {
+            get
+            {
+                return m_FlyoutService;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("value");
+                }
 
+                if (m_FlyoutService != null)
+                {
+                    throw new InvalidOperationException("Flyout Service Instance can be set only once");
+                }
+
+                m_FlyoutService = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets an instance of a <see cref="IMessageBoxService" /> used to show MessageBoxes.
+        /// </summary>
+        protected IMessageBoxService MessageBoxInstance
+        {
+            get
+            {
+                return m_MessageBoxService;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("value");
+                }
+
+                if (m_MessageBoxService != null)
+                {
+                    throw new InvalidOperationException("MessageBox Service Instance can be set only once");
+                }
+
+                m_MessageBoxService = value;
+            }
+        }
+
+        public ResourceLoader ResourceLoader
+        {
+            get
+            {
+                if (m_ResourceLoader == null)
+                {
+                    lock (LockObj)
+                    {
+                        if (m_ResourceLoader == null)
+                            m_ResourceLoader = new ResourceLoader();
+                    }
+                }
+                return m_ResourceLoader;
+            }
+        }
+        
         /// <summary>
         /// Unregisters this instance from the Messenger class.
         /// <para>To cleanup additional resources, override this method, clean

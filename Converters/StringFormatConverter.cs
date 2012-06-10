@@ -7,8 +7,8 @@
     {
         public object Convert(object value, Type targetType, object parameter, string culture)
         {
-            if (targetType == typeof(string) && parameter is object[])
-                return String.Format(value as string, parameter as object[]);
+            if (targetType == typeof(string) && parameter is string)
+                return String.Format(parameter as string, value);
             return value;
         }
 

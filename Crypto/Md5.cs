@@ -42,7 +42,7 @@ All rights reserved.
 // 03/17/07
 // Changed namespace
 
-namespace MetroMVVM
+namespace MetroMVVM.Crypto
 {
     using System;
     using System.IO;

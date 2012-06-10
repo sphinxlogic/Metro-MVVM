@@ -1,4 +1,4 @@
-﻿namespace MetroMVVM
+﻿namespace MetroMVVM.Extensions
 {
     using System;
 

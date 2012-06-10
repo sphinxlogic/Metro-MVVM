@@ -1,4 +1,4 @@
-﻿namespace MetroMVVM
+﻿namespace MetroMVVM.Interfaces
 {
     using System;
     using Windows.UI.Xaml.Navigation;
